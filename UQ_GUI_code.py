@@ -14,6 +14,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
+        self.showMaximized()
         
         self.all_img_paths = []
         self.plant_el_dict = {}
@@ -21,7 +22,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.PB_showimage.clicked.connect(self.show_image)
         self.PB_showmask.clicked.connect(self.show_mask)
-        self.CB_selectmask.currentIndexChanged.connect(self.select_plant)
+        self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
     
     def select_images(self):
         img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif)")
@@ -31,6 +32,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectimage.addItems(names)
         self.CB_selectplant.clear()
         self.CB_selectplant.addItems(self.plant_el_dict.keys())
+        self.select_plant()
         
     def clear_images(self):
         self.LW_imgpaths.clear()
@@ -41,7 +43,27 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_el_dict = {}
         
     def select_plant(self):
-        pass
+        self.cur_plant = self.CB_selectplant.currentText()
+        self.CB_selectthreshold.clear()
+        self.CB_selectthreshold.addItem('Manual')
+        self.CB_selectthreshold.addItems(self.plant_el_dict[self.cur_plant])
+        
+        self.ImgTabs.clear()
+        els = self.plant_el_dict[self.cur_plant]
+        plantdict = UQF.group_plants_files(self.all_img_paths)
+        plantdict = plantdict[self.cur_plant]
+        for el in els:
+            tab = QtWidgets.QWidget()
+            layout = QtWidgets.QVBoxLayout()
+            label = QtWidgets.QLabel()
+            layout.addWidget(label)
+            path = UQF.get_el_file_from_working_files(plantdict, el)
+            pixmap = QtGui.QPixmap(path)
+            label.setScaledContents(True)
+            label.setPixmap(pixmap)
+            tab.setLayout(layout)
+            self.ImgTabs.addTab(tab, el)
+            
         
     def show_image(self):
         cur_path = self.all_img_paths[self.CB_selectimage.currentIndex()]
@@ -49,7 +71,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectthreshold.clear()
         self.CB_selectthreshold.addItem('Manual')
         self.CB_selectthreshold.addItems(self.plant_el_dict[plant])
-        self.cur_plant = plant
         pixmap = QtGui.QPixmap(cur_path)
         item = QtWidgets.QGraphicsPixmapItem()
         item.setPixmap(pixmap)
@@ -62,15 +83,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         th_mode = self.CB_selectthreshold.currentText()
         th_manual = self.SB_selectmanualth.value()
         cur_path = self.all_img_paths[self.CB_selectimage.currentIndex()]
-        mask = UQF.get_single_mask(th_mode, th_manual, self.cur_plant, self.all_img_paths)
+        mask = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         item = QtWidgets.QGraphicsPixmapItem()
         item.setPixmap(pixmap)
         scene = QtWidgets.QGraphicsScene()
-        scene.addPixmap(pixmap)
+        scene.addItem(item)
         self.GV_mask.setScene(scene)
-        self.GV_image.fitInView(item)
+        self.GV_mask.fitInView(item)
 
 
 if __name__ == "__main__":

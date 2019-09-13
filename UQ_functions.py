@@ -207,15 +207,13 @@ def group_plants_files(files):
     for f in pathfiles:
         plantname, _ = plantname_from_filename(f)
         update_dict(plantdict, plantname, str(f))
-    print(plantdict)
     return plantdict
 
 def get_mask(th_mode, th_manual, cur_path, files):
     plantdict = group_plants_files(files)
     cur_path = Path(cur_path)
     curplantname, _ = plantname_from_filename(cur_path)
-    working_files = plantdict[plantname]
-    masks = []
+    working_files = plantdict[curplantname]
     if th_mode =="Manual":
         mask = mask_from_threshold(cur_path, th_manual)
         return mask
@@ -226,12 +224,12 @@ def get_mask(th_mode, th_manual, cur_path, files):
         
 def get_el_file_from_working_files(working_files, th_mode):
     #elements = ["K", "Ca", "Fe", "Zn", "Se"]#not recommended with Fe, Zn, Se
-    for f in files:
-        f = Path(f)
-        temp = f.with_suffix('')
+    for f in working_files:
+        fp = Path(f)
+        temp = fp.with_suffix('')
         name = temp.name
         if name.endswith("{}".format(th_mode)):
-            return el_file
+            return f
     return "Element not found"
         
 
