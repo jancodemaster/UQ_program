@@ -194,25 +194,46 @@ def execute():
         #cv2.namedWindow("plantwithmask_{}".format(name), cv2.WINDOW_NORMAL)
         #cv2.imshow("plantwithmask_{}".format(name), plant)
         #cv2.waitKey()
-
-def get_mask(th_mode, th_manual, files):
+def group_plants_files(files):
+    """Function to group plants based on name.
+    
+    This function creates a dictionary which has key: plantname without element
+    and values a list of all plants with that name.
+    Example key:smallplant, value:[smallplant K.tiff, smallplant Ca.tiff]
+    returns plantdict a dictionary with key:plantname, value: list of plant paths
+    """
+    plantdict = {}
     pathfiles = string_to_paths(files)
+    for f in pathfiles:
+        plantname, _ = plantname_from_filename(f)
+        update_dict(plantdict, plantname, str(f))
+    print(plantdict)
+    return plantdict
+
+def get_mask(th_mode, th_manual, cur_path, files):
+    plantdict = group_plants_files(files)
+    cur_path = Path(cur_path)
+    curplantname, _ = plantname_from_filename(cur_path)
+    working_files = plantdict[plantname]
     masks = []
     if th_mode =="Manual":
-        for f in pathfiles:
-            mask = mask_from_threshold(f, th_manual)
-            entry = (f, mask)
-            masks.append(entry)
-        maskdict = create_mask_dict(masks)
-        return maskdict
+        mask = mask_from_threshold(cur_path, th_manual)
+        return mask
     else:
-        el_files = el_files_from_files(pathfiles, th_mode )
-        for f in el_files:
-            mask = mask_from_k(f)
-            entry = (f, mask)
-            masks.append(entry)
-        maskdict = create_mask_dict(masks)
-        return maskdict
+        el_file = get_el_file_from_working_files(working_files, th_mode)
+        mask = mask_from_k(el_file)
+        return mask
+        
+def get_el_file_from_working_files(working_files, th_mode):
+    #elements = ["K", "Ca", "Fe", "Zn", "Se"]#not recommended with Fe, Zn, Se
+    for f in files:
+        f = Path(f)
+        temp = f.with_suffix('')
+        name = temp.name
+        if name.endswith("{}".format(th_mode)):
+            return el_file
+    return "Element not found"
+        
 
 def get_single_mask(th_mode, th_manual, f):
     f = Path(f)
@@ -235,7 +256,9 @@ def create_mask_dict(masks):
 
 if __name__ == "__main__":
     #files = load_images_directory_as_string(argv[1])
-    execute()
+    files = load_images_directory_as_string(argv[1])
+    group_plants_files(files)
+    #execute()
     #maskdict = get_mask("Manual", 30, files)
     #print(maskdict)
     #binary_mask = mask_from_k(kfile)
@@ -281,4 +304,23 @@ if __name__ == "__main__":
     cv2.imshow(name, copy_img)
     cv2.waitKey()
     cv2.destroyAllWindows()
+    
+    def get_mask(th_mode, th_manual, files):
+    pathfiles = string_to_paths(files)
+    masks = []
+    if th_mode =="Manual":
+        for f in pathfiles:
+            mask = mask_from_threshold(f, th_manual)
+            entry = (f, mask)
+            masks.append(entry)
+        maskdict = create_mask_dict(masks)
+        return maskdict
+    else:
+        el_files = el_files_from_files(pathfiles, th_mode )
+        for f in el_files:
+            mask = mask_from_k(f)
+            entry = (f, mask)
+            masks.append(entry)
+        maskdict = create_mask_dict(masks)
+        return maskdict
 """
