@@ -21,6 +21,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.PB_showimage.clicked.connect(self.show_image)
         self.PB_showmask.clicked.connect(self.show_mask)
+        self.CB_selectmask.currentIndexChanged.connect(self.select_plant)
     
     def select_images(self):
         img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif)")
@@ -28,7 +29,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
         self.CB_selectimage.addItems(names)
-        #self.CB_selectthreshold.addItems(els)
+        self.CB_selectplant.clear()
+        self.CB_selectplant.addItems(self.plant_el_dict.keys())
         
     def clear_images(self):
         self.LW_imgpaths.clear()
@@ -37,6 +39,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectthreshold.addItem('Manual')
         self.all_img_paths = []
         self.plant_el_dict = {}
+        
+    def select_plant(self):
+        pass
         
     def show_image(self):
         cur_path = self.all_img_paths[self.CB_selectimage.currentIndex()]
@@ -57,7 +62,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         th_mode = self.CB_selectthreshold.currentText()
         th_manual = self.SB_selectmanualth.value()
         cur_path = self.all_img_paths[self.CB_selectimage.currentIndex()]
-        mask = UQF.get_single_mask(th_mode, th_manual, cur_path)
+        mask = UQF.get_single_mask(th_mode, th_manual, self.cur_plant, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
         pixmap = QtGui.QPixmap.fromImage(qImg)
         item = QtWidgets.QGraphicsPixmapItem()
