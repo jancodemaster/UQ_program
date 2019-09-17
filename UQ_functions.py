@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+#imports
 from sys import argv
 import cv2
 import numpy as np
@@ -7,10 +8,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import os
 
-
-
-
+#functions
 def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-thresholding/
+    """
+    """
     i_s = np.min(np.where(b[0]>0))
     i_e = np.max(np.where(b[0]>0))
     i_m = (i_s + i_e)//2
@@ -32,10 +33,9 @@ def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-th
                 w_r -= b[0][i_m+1]
                 i_m += 1
     return i_m
-#TODO kies de threshold op de eerste plek waar het histogram weer omhoog gaat. Voor donkere plaatjes.
+
 def load_image(filename):
     filename = Path(filename)
-    #print(filename)
     if filename.suffix in [".tif", ".tiff", ".png", ".jpeg", ".jpg"]:
         image = cv2.imread(filename.as_posix(), 0)
         name = filename.name
@@ -66,13 +66,7 @@ def create_hist(img):
 
 def load_images_directory(dirname):
     dirname = Path(dirname)
-    files = [x for x in dirname.iterdir() if not x.is_dir()]
-    return files
-
-def load_images_directory_as_string(dirname):#TODO remove os
-    files = []
-    for f in os.listdir(dirname):
-        files.append(os.path.join(dirname, f))
+    files = [str(x) for x in dirname.iterdir() if not x.is_dir()]#was x for x
     return files
 
 def mask_from_threshold(imgname, th_value):
@@ -149,11 +143,6 @@ def plantname_from_filename(f):#f must be a Path(f)
     el = splits[1]
     return plantname, el
 
-def path_name_to_file_name(string_path_name):
-    f = Path(string_path_name)
-    print(f.name)
-    return f.name
-
 def calc_area_using_mask(mask):#counts the area of the total masks
     return int(np.sum(mask)/255) # all black pixels are 255 instead of 1
 
@@ -194,6 +183,7 @@ def execute():
         #cv2.namedWindow("plantwithmask_{}".format(name), cv2.WINDOW_NORMAL)
         #cv2.imshow("plantwithmask_{}".format(name), plant)
         #cv2.waitKey()
+
 def group_plants_files(files):
     """Function to group plants based on name.
     
@@ -223,7 +213,6 @@ def get_mask(th_mode, th_manual, cur_path, files):
         return mask
         
 def get_el_file_from_working_files(working_files, th_mode):
-    #elements = ["K", "Ca", "Fe", "Zn", "Se"]#not recommended with Fe, Zn, Se
     for f in working_files:
         fp = Path(f)
         temp = fp.with_suffix('')
@@ -231,18 +220,6 @@ def get_el_file_from_working_files(working_files, th_mode):
         if name.endswith("{}".format(th_mode)):
             return f
     return "Element not found"
-        
-
-def get_single_mask(th_mode, th_manual, f):
-    f = Path(f)
-    if th_mode == "Manual":
-        mask = mask_from_threshold(f, th_manual)
-        return mask
-    else:
-        el_files = el_files_from_files([f], th_mode)
-        for ff in el_files:
-            mask = mask_from_k(ff)
-            return mask
 
 def create_mask_dict(masks):
     #create a dict which has {key:"name" , value: mask}
@@ -252,73 +229,8 @@ def create_mask_dict(masks):
         maskdict[plantname] = mask
     return maskdict
 
+#main
 if __name__ == "__main__":
-    #files = load_images_directory_as_string(argv[1])
-    files = load_images_directory_as_string(argv[1])
-    group_plants_files(files)
-    #execute()
-    #maskdict = get_mask("Manual", 30, files)
-    #print(maskdict)
-    #binary_mask = mask_from_k(kfile)
-    #filename = argv[1]
-    #img, name = load_image(filename)
-    #b1 = plt.hist(img.ravel(),256,[0,256])
-    #b1 = create_hist(img)
-    #thresh_value = balanced_hist_thresholding(b1)
+    files = load_images_directory(argv[1])
+    #group_plants_files(files)
     
-    #ret,th1 = cv2.threshold(img,thresh_value ,255,cv2.THRESH_BINARY)
-    
-    #cv2.namedWindow("histthreshhold", cv2.WINDOW_NORMAL)
-    #cv2.imshow("histthreshhold", th1)
-    #cv2.waitKey()
-    
-    #con = contouring(th1)
-    
-    
-    #cv2.drawContours(img, con, -1, (255, 255, 255), -1)
-    #cv2.namedWindow("con", cv2.WINDOW_NORMAL)
-    #cv2.imshow("con", img)
-    #cv2.waitKey()
-    
-    #_, binary_mask = cv2.threshold(copy_img, 254,255,cv2.THRESH_BINARY)
-    #binary_mask = np.zeros(np.shape(img))
-    #cv2.drawContours(binary_mask, con, -1, (255,255,255), -1)
-    #cv2.namedWindow("mask", cv2.WINDOW_NORMAL)
-    #cv2.imshow("mask", binary_mask)
-    #cv2.waitKey()
-    """
-    blur = cv2.GaussianBlur(th1,(5,5),0)
-    ret3,th3 = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-
-    blur2 = cv2.GaussianBlur(th3,(15,15),0)
-    b2 = plt.hist(blur2.ravel(),256,[0,256])
-    thresh_value2 = balanced_hist_thresholding(b2)
-    ret,th4 = cv2.threshold(blur2,thresh_value2 ,255,cv2.THRESH_BINARY)
-    ret5,th5 = cv2.threshold(th4,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-    large_contours = contouring(th5)
-    
-    cv2.drawContours(copy_img, large_contours, -1, (255, 255, 255), -1)
-    cv2.namedWindow(name, cv2.WINDOW_NORMAL)
-    cv2.imshow(name, copy_img)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-    
-    def get_mask(th_mode, th_manual, files):
-    pathfiles = string_to_paths(files)
-    masks = []
-    if th_mode =="Manual":
-        for f in pathfiles:
-            mask = mask_from_threshold(f, th_manual)
-            entry = (f, mask)
-            masks.append(entry)
-        maskdict = create_mask_dict(masks)
-        return maskdict
-    else:
-        el_files = el_files_from_files(pathfiles, th_mode )
-        for f in el_files:
-            mask = mask_from_k(f)
-            entry = (f, mask)
-            masks.append(entry)
-        maskdict = create_mask_dict(masks)
-        return maskdict
-"""
