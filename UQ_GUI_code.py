@@ -12,7 +12,7 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
-        '''Initialization of program; runs when started
+        '''Runs on start of application: Initialization of program
         
         Opens the GUI application
         Initializes variables
@@ -32,7 +32,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
     
     def select_images(self):
-        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif)")
+        '''Runs when TB_imagefolder is clicked: select images
+        
+        Opens a QFileDialog screen to select images (.tif or .txt)
+        Saves the loaded image paths in a list
+        Extracts the names and 
+        '''
+        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif, *.txt)")
+        for img_path in img_paths:
+            if is_valid_filename(img_path) == False:
+                print(img_path, 'is not a valid filename and is therefore removed')
+                img_paths.remove(img_path)
         self.nr_img += len(img_paths)
         self.LW_imgpaths.addItems(img_paths)
         self.all_img_paths.extend(img_paths)
