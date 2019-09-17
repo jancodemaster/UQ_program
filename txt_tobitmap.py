@@ -2,40 +2,26 @@
 
 from sys import argv
 import numpy as np
-from PIL import Image
+from pathlib import Path
+import cv2
 
-def open_txt_imagefile(filename):
-    f = open(filename, "r")
-    lines = f.readlines()
-    header = lines[0]
-    content = []
-    for i in range(1, len(lines)-1):#last line is ['']
-        line = lines[i].strip("\n")
-        line = line.split(",")
-        content.append(line)
-    f.close()
-    return header, content
-
-def get_2d_array(header, content):
-    headsplits = header.split()
-    el = headsplits[0].strip(":")
-    x = int(headsplits[1])
-    y = int(headsplits[3])
-    points = np.array(content).astype(float)
-    max_array = np.max(points)
-    points = points * (255/max_array)
-    #points = points.astype(int)
-    return points
+def open_txt_np(filename):
+    array = np.loadtxt(filename, delimiter = ",", skiprows = 1, dtype = "uint16")
+    return array
 
 def save_image(array, filename):
-    image = Image.fromarray(array)
-    image = image.convert("RGB")
-    #image.show()
-    
-    image.save(filename)
+    max_array = np.max(array)
+    array = array * (255/max_array)
+    array = array.astype("uint8")
+    print(filename)
+    f = Path(filename)
+    f = f.with_suffix(".tif")
+    f = f.name
+    f = "{} - {}".format(max_array, f)
+    cv2.imwrite(f, array)
 
 if __name__ == "__main__":
     filename = argv[1]
-    header, content = open_txt_imagefile(filename)
-    get_2d_array(header, content)
+    array = open_txt_np(filename)
+    save_image(array, filename)
     
