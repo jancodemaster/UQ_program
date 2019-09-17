@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>University of Queensland - Plant Analyzer</string>
+   <string>MicroXRF Analyzer - University of Queensland</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="enabled">

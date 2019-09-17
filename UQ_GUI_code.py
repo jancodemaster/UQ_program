@@ -12,6 +12,12 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
+        '''Initialization of program; runs when started
+        
+        Opens the GUI application
+        Initializes variables
+        Initializes clickable buttons
+        '''
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
@@ -19,6 +25,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.all_img_paths = []
         self.plant_el_dict = {}
+        self.nr_img = 0
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.PB_showmask.clicked.connect(self.show_mask)
@@ -26,6 +33,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def select_images(self):
         img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif)")
+        self.nr_img += len(img_paths)
         self.LW_imgpaths.addItems(img_paths)
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
@@ -34,6 +42,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.select_plant()
         
     def clear_images(self):
+        self.nr_img = 0
         self.LW_imgpaths.clear()
         self.CB_selectplant.clear()
         self.CB_selectel.clear()
@@ -82,6 +91,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         scene.addItem(item)
         self.GV_mask.setScene(scene)
         self.GV_mask.fitInView(item)
+        
+    def apply_mask(self):
+        els = self.plant_el_dict[self.cur_plant]
+        self.Table.setRowCount(len(els))
+        self.Table.setColumnCount(2)
+        for i, el in enumerate(els):
+            self.Table.setItem(i,0, QtWidgets.QTableWidgetItem(el))
 
 
 if __name__ == "__main__":
