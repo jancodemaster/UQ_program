@@ -139,8 +139,12 @@ def plantname_from_filename(f):#f must be a Path(f)
     f = f.with_suffix('')
     name = f.name
     splits = name.split(" - ")#pathsdfk/plantnaam - El.tif
-    plantname = splits[0]
-    el = splits[1]
+    if len(splits) == 2:
+        plantname = splits[0]
+        el = splits[1]
+    elif len(splits) == 3:
+        plantname = splits[1]
+        el = splits[2]
     return plantname, el
 
 def calc_area_using_mask(mask):#counts the area of the total masks
@@ -229,7 +233,7 @@ def create_mask_dict(masks):
         maskdict[plantname] = mask
     return maskdict
 
-def is_valid_filename(filename):
+def is_valid_filename(filename):#
     return True
 
 #main
