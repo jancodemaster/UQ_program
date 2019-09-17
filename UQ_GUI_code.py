@@ -36,21 +36,19 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def clear_images(self):
         self.LW_imgpaths.clear()
         self.CB_selectplant.clear()
-        self.CB_selectthreshold.clear()
-        self.CB_selectthreshold.addItem('Manual')
+        self.CB_selectel.clear()
         self.all_img_paths = []
         self.plant_el_dict = {}
         
     def select_plant(self):
         self.cur_plant = self.CB_selectplant.currentText()
-        self.CB_selectthreshold.clear()
-        self.CB_selectthreshold.addItem('Manual')
-        self.CB_selectthreshold.addItems(self.plant_el_dict[self.cur_plant])
+        self.CB_selectel.clear()
+        self.CB_selectel.addItems(self.plant_el_dict[self.cur_plant])
         
         self.ImgTabs.clear()
         els = self.plant_el_dict[self.cur_plant]
-        plantdict = UQF.group_plants_files(self.all_img_paths)
-        plantdict = plantdict[self.cur_plant]
+        self.plantdict = UQF.group_plants_files(self.all_img_paths)
+        self.plantdict = self.plantdict[self.cur_plant]
         for el in els:
             tab = QtWidgets.QWidget()
             layout = QtWidgets.QVBoxLayout()
@@ -60,7 +58,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setSizePolicy(sizePolicy)
             label.setMinimumSize(1, 1)
             layout.addWidget(label)
-            path = UQF.get_el_file_from_working_files(plantdict, el)
+            path = UQF.get_el_file_from_working_files(self.plantdict, el)
             pixmap = QtGui.QPixmap(path)
             #label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             label.setScaledContents(True)
@@ -70,9 +68,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     
     def show_mask(self):
         th_mode = self.CB_selectthreshold.currentText()
+        th_el = self.CB_selectel.currentText()
+        if th_mode == 'Auto':
+            th_mode = th_el
         th_manual = self.SB_selectmanualth.value()
-        #cur_path = self.all_img_paths[self.CB_selectimage.currentIndex()]
-        cur_path = UQF.get_el_file_from_working_files
+        cur_path = UQF.get_el_file_from_working_files(self.plantdict, th_el)
         mask = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
         pixmap = QtGui.QPixmap.fromImage(qImg)
