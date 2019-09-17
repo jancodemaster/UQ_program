@@ -229,6 +229,9 @@ def create_mask_dict(masks):
         maskdict[plantname] = mask
     return maskdict
 
+def is_valid_filename(filename):
+    return True
+
 #main
 if __name__ == "__main__":
     files = load_images_directory(argv[1])
