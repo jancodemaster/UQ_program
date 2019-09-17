@@ -190,7 +190,7 @@ def group_plants_files(files):
     This function creates a dictionary which has key: plantname without element
     and values a list of all plants with that name.
     Example key:smallplant, value:[smallplant K.tiff, smallplant Ca.tiff]
-    returns plantdict a dictionary with key:plantname, value: list of plant paths
+    returns: plantdict - a dictionary with key:plantname, value: list of plant paths
     """
     plantdict = {}
     pathfiles = string_to_paths(files)
