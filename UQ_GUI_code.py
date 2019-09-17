@@ -25,26 +25,31 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         self.all_img_paths = []
         self.plant_el_dict = {}
+        self.plant_path_dict = {}
         self.nr_img = 0
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
-        self.PB_showmask.clicked.connect(self.show_mask)
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
+        self.PB_showmask.clicked.connect(self.show_mask)
+        self.PB_applymask.clicked.connect(self.apply_mask)
     
     def select_images(self):
-        '''Runs when TB_imagefolder is clicked: select images
+        '''Runs when TB_imagefolder is clicked: selects images
         
         Opens a QFileDialog screen to select images (.tif or .txt)
+        Checks if the filenames are valid
         Saves the loaded image paths in a list
-        Extracts the names and 
+        Extracts a list with the names and a dict with the elements per plant
+        Adds the plant names to a selection box
+        Runs the select_plant() function
         '''
-        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif, *.txt)")
+        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif; *.txt)")
         for img_path in img_paths:
-            if is_valid_filename(img_path) == False:
+            if UQF.is_valid_filename(img_path) == False:
                 print(img_path, 'is not a valid filename and is therefore removed')
                 img_paths.remove(img_path)
         self.nr_img += len(img_paths)
-        self.LW_imgpaths.addItems(img_paths)
+        self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded')
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
         self.CB_selectplant.clear()
@@ -52,6 +57,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.select_plant()
         
     def clear_images(self):
+        '''Runs when PB_clearimgs is clicked: clears images
+        
+        Clears every trace of the selected images
+        '''
         self.nr_img = 0
         self.LW_imgpaths.clear()
         self.CB_selectplant.clear()
@@ -60,14 +69,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_el_dict = {}
         
     def select_plant(self):
-        self.cur_plant = self.CB_selectplant.currentText()
+        ''''Runs after select_images and when CB_selectplant index is changed
+        '''
         self.CB_selectel.clear()
-        self.CB_selectel.addItems(self.plant_el_dict[self.cur_plant])
-        
         self.ImgTabs.clear()
+        self.cur_plant = self.CB_selectplant.currentText()
         els = self.plant_el_dict[self.cur_plant]
-        self.plantdict = UQF.group_plants_files(self.all_img_paths)
-        self.plantdict = self.plantdict[self.cur_plant]
+        self.CB_selectel.addItems(els)
+        self.plant_path_dict = UQF.group_plants_files(self.all_img_paths)
+        self.plant_path_dict = self.plant_path_dict[self.cur_plant]
         for el in els:
             tab = QtWidgets.QWidget()
             layout = QtWidgets.QVBoxLayout()
@@ -77,7 +87,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setSizePolicy(sizePolicy)
             label.setMinimumSize(1, 1)
             layout.addWidget(label)
-            path = UQF.get_el_file_from_working_files(self.plantdict, el)
+            path = UQF.get_el_file_from_working_files(self.plant_path_dict, el)
             pixmap = QtGui.QPixmap(path)
             #label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             label.setScaledContents(True)
@@ -91,7 +101,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         if th_mode == 'Auto':
             th_mode = th_el
         th_manual = self.SB_selectmanualth.value()
-        cur_path = UQF.get_el_file_from_working_files(self.plantdict, th_el)
+        cur_path = UQF.get_el_file_from_working_files(self.plant_path_dict, th_el)
         mask = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
         pixmap = QtGui.QPixmap.fromImage(qImg)
@@ -105,9 +115,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def apply_mask(self):
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
-        self.Table.setColumnCount(2)
+        self.Table.setVerticalHeaderLabels(els)
+        self.Table.setColumnCount(1)
+        self.Table.setHorizontalHeaderLabels(['Total Counts'])
         for i, el in enumerate(els):
-            self.Table.setItem(i,0, QtWidgets.QTableWidgetItem(el))
+            #counts = UQF.calc_counts(mask, el)
+            counts = 1
+            self.Table.setItem(i,0, QtWidgets.QTableWidgetItem(str(counts)))
 
 
 if __name__ == "__main__":
