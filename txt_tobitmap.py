@@ -4,7 +4,7 @@ from sys import argv
 import numpy as np
 from PIL import Image
 
-def open_file(filename):
+def open_txt_imagefile(filename):
     f = open(filename, "r")
     lines = f.readlines()
     header = lines[0]
@@ -34,6 +34,6 @@ def get_2d_array(header, content):
 
 if __name__ == "__main__":
     filename = argv[1]
-    header, content = open_file(filename)
+    header, content = open_txt_imagefile(filename)
     get_2d_array(header, content)
     
