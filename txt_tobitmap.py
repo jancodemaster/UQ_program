@@ -25,12 +25,14 @@ def get_2d_array(header, content):
     max_array = np.max(points)
     points = points * (255/max_array)
     #points = points.astype(int)
-    print(np.max(points))
-    image = Image.fromarray(points)
+    return points
+
+def save_image(array, filename):
+    image = Image.fromarray(array)
     image = image.convert("RGB")
     #image.show()
     
-    image.save("test.tif")
+    image.save(filename)
 
 if __name__ == "__main__":
     filename = argv[1]
