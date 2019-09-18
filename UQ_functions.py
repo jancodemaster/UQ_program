@@ -234,10 +234,31 @@ def create_mask_dict(masks):
     return maskdict
 
 def is_valid_filename(filename):#
-    return True
+    f = Path(filename)
+    if f.suffix == ".tif":
+        name = f.name
+        if " - " in name:
+            splits = name.split(" - ")
+            if len(splits) == 2:
+                return True
+            else:
+                return False
+        else:
+            return False
+    elif f.suffix == ".txt":
+        name = f.name
+        if " - " in name:
+            splits = name.split(" - ")
+            if len(splits) == 3:
+                return True
+            else:
+                return False
+    else:
+        return False
 
 #main
 if __name__ == "__main__":
-    files = load_images_directory(argv[1])
+    #files = load_images_directory(argv[1])
+    print(is_valid_filename(argv[1]))
     #group_plants_files(files)
     
