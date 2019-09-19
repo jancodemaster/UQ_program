@@ -153,21 +153,34 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LW_imgpaths.addItem(msg)
     
     def export_csv(self):
-        filename = self.LE_csvfilename.text()
+        filename = self.LE_csvfilename.text() + '.csv'
         path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename, 'CSV(*.csv)')
         if path:
-            with open(path, 'wb') as stream:
+            with open(path, 'w') as stream:
                 writer = csv.writer(stream)
+                headers = ['',]
+                for column in range(self.Table.columnCount()):
+                    header = self.Table.horizontalHeaderItem(column)
+                    if header is not None:
+                         headers.append(header.text())
+                    else:
+                        headers.append("Column " + str(column))
+                writer.writerow(headers)
                 for row in range(self.Table.rowCount()):
                     rowdata = []
+                    header = self.Table.verticalHeaderItem(row)
+                    if header is not None:
+                        rowdata.append(header.text())
+                    else:
+                        rowdata.append("Row " + str(row))
                     for column in range(self.Table.columnCount()):
                         item = self.Table.item(row, column)
                         if item is not None:
-                            rowdata.append(
-                                str(item.text()).encode('utf8'))
+                            rowdata.append(item.text())
                         else:
                             rowdata.append('')
                     writer.writerow(rowdata)
+        self.LW_imgpaths.addItem('Exported data as csv')
         
 
 
