@@ -122,11 +122,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
         self.Table.setVerticalHeaderLabels(els)
-        self.Table.setColumnCount(1)
+        self.Table.setColumnCount(len(self.con))
         self.Table.setHorizontalHeaderLabels(['Total Counts'])
         UQF.area_contours(self.con, self.plant_path_dict)
         for i, el in enumerate(els):
-            #counts = UQF.calc_counts(mask, el)
             counts = 1
             self.Table.setItem(i,0, QtWidgets.QTableWidgetItem(str(counts)))
 
