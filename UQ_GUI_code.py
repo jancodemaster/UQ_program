@@ -123,11 +123,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.Table.setRowCount(len(els))
         self.Table.setVerticalHeaderLabels(els)
         self.Table.setColumnCount(len(self.con))
-        self.Table.setHorizontalHeaderLabels(['Total Counts'])
-        UQF.area_contours(self.con, self.plant_path_dict)
-        for i, el in enumerate(els):
-            counts = 1
-            self.Table.setItem(i,0, QtWidgets.QTableWidgetItem(str(counts)))
+        self.Table.setHorizontalHeaderLabels([str(i) for i in range(len(self.con))])
+        counts = UQF.area_contours(self.con, self.plant_path_dict)
+        for el, connr, count in counts:
+            self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
 
 
 if __name__ == "__main__":
