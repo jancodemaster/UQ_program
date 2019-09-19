@@ -102,8 +102,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             th_mode = th_el
         th_manual = self.SB_selectmanualth.value()
         cur_path = UQF.get_el_file_from_working_files(self.plant_path_dict, th_el)
-        mask = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
+        mask, con = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
+        self.mask = mask
+        self.con = con
         pixmap = QtGui.QPixmap.fromImage(qImg)
         item = QtWidgets.QGraphicsPixmapItem()
         item.setPixmap(pixmap)
@@ -113,6 +115,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.GV_mask.fitInView(item)
         
     def apply_mask(self):
+        # TODO: check if mask and con are not empty
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
         self.Table.setVerticalHeaderLabels(els)
