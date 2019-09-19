@@ -3,9 +3,10 @@
 # csv = ppm
 # txt = counts
 import sys
-import cv2
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 import UQ_functions as UQF
+import csv
+from pathlib import Path
 
 qtCreatorFile = "uq_gui.ui" # Enter file here.
 
@@ -34,6 +35,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
         self.PB_showmask.clicked.connect(self.show_mask)
         self.PB_applymask.clicked.connect(self.apply_mask)
+        self.PB_csvexport.clicked.connect(self.export_csv)
     
     def select_images(self):
         '''Runs when TB_imagefolder is clicked: selects images
@@ -49,7 +51,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '')
         for img_path in img_paths:
             if UQF.is_valid_filename(img_path) == False:
-                print(img_path, 'is not a valid filename and is therefore removed')
+                msg = '{} is not a valid filename and is therefore removed'.format(img_path)
+                self.LW_imgpaths.addItem(msg)
                 img_paths.remove(img_path)
         self.nr_img += len(img_paths)
         self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded')
@@ -57,7 +60,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
         self.CB_selectplant.clear()
         self.CB_selectplant.addItems(self.plant_el_dict.keys())
-        self.select_plant()
+        #self.select_plant()
         
     def clear_images(self):
         '''Runs when PB_clearimgs is clicked: clears images
@@ -70,10 +73,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.CB_selectel.clear()
         self.all_img_paths = []
         self.plant_el_dict = {}
+        self.LW_imgpaths.addItem('All images cleared')
         
     def select_plant(self):
-        ''''Runs after select_images and when CB_selectplant index is changed
+        ''''Runs when CB_selectplant index is changed
         '''
+        if self.CB_selectplant.currentText() == '':
+            return
         self.CB_selectel.clear()
         self.ImgTabs.clear()
         self.cur_plant = self.CB_selectplant.currentText()
@@ -97,13 +103,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setPixmap(pixmap)
             tab.setLayout(layout)
             self.ImgTabs.addTab(tab, el)
+        self.LW_imgpaths.addItem('Loaded information of ' + self.cur_plant)
     
     def show_mask(self):
         th_mode = self.CB_selectthreshold.currentText()
+        th_manual = self.SB_selectmanualth.value()
         th_el = self.CB_selectel.currentText()
         if th_mode == 'Auto':
             th_mode = th_el
-        th_manual = self.SB_selectmanualth.value()
+            th_manual = 'Auto'
         cur_path = UQF.get_el_file_from_working_files(self.plant_path_dict, th_el)
         mask, con = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
@@ -116,6 +124,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         scene.addItem(item)
         self.GV_mask.setScene(scene)
         self.GV_mask.fitInView(item)
+        msg = 'Calculated mask for {} using {} with threshold {}'.format(self.cur_plant, th_el, th_manual)
+        self.LW_imgpaths.addItem(msg)
         
     def apply_mask(self):
         # TODO: check if mask and con are not empty
@@ -127,6 +137,27 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         counts = UQF.area_contours(self.con, self.plant_path_dict)
         for el, connr, count in counts:
             self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
+        self.LE_csvfilename.setText(self.cur_plant + ' - total counts')
+        msg = 'Calculated total counts for all {} plants found on the image'.format(len(self.con))
+        self.LW_imgpaths.addItem(msg)
+    
+    def export_csv(self):
+        filename = self.LE_csvfilename.text()
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename, 'CSV(*.csv)')
+        if path:
+            with open(path, 'wb') as stream:
+                writer = csv.writer(stream)
+                for row in range(self.Table.rowCount()):
+                    rowdata = []
+                    for column in range(self.Table.columnCount()):
+                        item = self.Table.item(row, column)
+                        if item is not None:
+                            rowdata.append(
+                                str(item.text()).encode('utf8'))
+                        else:
+                            rowdata.append('')
+                    writer.writerow(rowdata)
+        
 
 
 if __name__ == "__main__":
