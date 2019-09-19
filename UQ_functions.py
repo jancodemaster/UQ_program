@@ -249,7 +249,7 @@ def is_valid_filename(filename):#
         name = f.name
         if " - " in name:
             splits = name.split(" - ")
-            if len(splits) == 3:
+            if len(splits) == 2:
                 return True
             else:
                 return False
@@ -260,17 +260,17 @@ def calc_shape(filename):
     img, _ = load_image(filename)
     return np.shape(img)
 
+def get_contour_precedence(contour, cols):
+    tolerance_factor = 50
+    origin = cv2.boundingRect(contour)
+    return ((origin[1] // tolerance_factor) * tolerance_factor) * cols + origin[0]
+
 def area_contours(contours, filepaths):
     results = []
     shape = calc_shape(filepaths[0])
     #sort contours on (x, y)
-    sorted_contours = []
-    for c in contours:
-        M = cv2.moments(c)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        sorted_contours.append(((cX, cY), c))
-    print(sorted_contours)
+    contours = sorted(contours, key=lambda x:get_contour_precedence(x, shape[1]))
+    
     for i in range(0, len(contours)):
         empty_mask = np.zeros(shape, dtype=np.uint8)
         cv2.drawContours(empty_mask, contours, i, (255,255,255), -1)
@@ -279,21 +279,21 @@ def area_contours(contours, filepaths):
             plantname, el = plantname_from_filename(name)
             con_on_image = img * empty_mask
             total = calc_area_element(con_on_image)
-            sum_real = total/255
+            sum_real = int(total/255)
             entry = (el, i, sum_real)
             results.append(entry)
-    print(results)
-    return results
-            
-            
-    
-    pass
-    #Voor elke contour: 
-    #   draw contour op zeros
-    #   Voor elk element:
-    #       vermenigvuldig nieuw plaatje met img van element
-    #       np.sum
-    #return [(element, contour, sum),]
+
+
+    #only if new picture is needed for frontend
+    img = np.zeros(shape, dtype=np.uint8)
+    cv2.drawContours(img, contours, -1, (255,255,255), -1)
+    for i in range(0, len(contours)):
+        img = cv2.putText(img, str(i),cv2.boundingRect(contours[i])[:2], cv2.FONT_HERSHEY_COMPLEX, 3, [125], 5)#cv2.boundingRect(contours[i])[:2]
+    #cv2.namedWindow("drawn contours", cv2.WINDOW_NORMAL)
+    #cv2.imshow("drawn contours", img)
+    #cv2.waitKey()
+    return results, img
+
 #main
 if __name__ == "__main__":
     #files = load_images_directory(argv[1])
