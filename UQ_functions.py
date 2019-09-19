@@ -74,7 +74,7 @@ def mask_from_threshold(imgname, th_value):
     _, th1 = cv2.threshold(img, th_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
     binary_mask = create_mask(img, con)
-    return binary_mask
+    return binary_mask, con
 
 def mask_from_k(kfile):
     img, name = load_image(kfile)
@@ -83,7 +83,7 @@ def mask_from_k(kfile):
     _, th1 = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
     binary_mask = create_mask(img, con)
-    return binary_mask
+    return binary_mask, con
 
 def el_files_from_files(files, el = "K"):#default K
     elements = ["K", "Ca", "Fe", "Zn", "Se"]#not recommended with Fe, Zn, Se
@@ -209,12 +209,12 @@ def get_mask(th_mode, th_manual, cur_path, files):
     curplantname, _ = plantname_from_filename(cur_path)
     working_files = plantdict[curplantname]
     if th_mode =="Manual":
-        mask = mask_from_threshold(cur_path, th_manual)
-        return mask
+        mask, con = mask_from_threshold(cur_path, th_manual)
+        return mask, con
     else:
         el_file = get_el_file_from_working_files(working_files, th_mode)
-        mask = mask_from_k(el_file)
-        return mask
+        mask, con = mask_from_k(el_file)
+        return mask, con
         
 def get_el_file_from_working_files(working_files, th_mode):
     for f in working_files:
