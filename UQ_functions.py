@@ -256,6 +256,36 @@ def is_valid_filename(filename):#
     else:
         return False
 
+def calc_shape(filename):
+    img, _ = load_image(filename)
+    return np.shape(img)
+
+def area_contours(contours, filepaths):
+    results = []
+    shape = calc_shape(filepaths[0])
+    for i in range(0, len(contours)):
+        empty_mask = np.zeros(shape, dtype=np.uint8)
+        cv2.drawContours(empty_mask, contours, i, (255,255,255), -1)
+        for f in filepaths:
+            img, name = load_image(f)
+            plantname, el = plantname_from_filename(name)
+            con_on_image = img * empty_mask
+            total = calc_area_element(con_on_image)
+            sum_real = total/255
+            entry = (el, i, sum_real)
+            results.append(entry)
+    print(results)
+    return results
+            
+            
+    
+    pass
+    #Voor elke contour: 
+    #   draw contour op zeros
+    #   Voor elk element:
+    #       vermenigvuldig nieuw plaatje met img van element
+    #       np.sum
+    #return [(element, contour, sum),]
 #main
 if __name__ == "__main__":
     #files = load_images_directory(argv[1])
