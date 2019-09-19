@@ -1,5 +1,7 @@
 # GUI Application Code
-
+# zoom function
+# csv = ppm
+# txt = counts
 import sys
 import cv2
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
@@ -43,7 +45,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         Adds the plant names to a selection box
         Runs the select_plant() function
         '''
-        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif; *.txt)")
+        #img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif; *.txt)")
+        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '')
         for img_path in img_paths:
             if UQF.is_valid_filename(img_path) == False:
                 print(img_path, 'is not a valid filename and is therefore removed')
