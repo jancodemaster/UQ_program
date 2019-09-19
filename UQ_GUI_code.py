@@ -51,6 +51,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             if UQF.is_valid_filename(img_path) == False:
                 print(img_path, 'is not a valid filename and is therefore removed')
                 img_paths.remove(img_path)
+                
         self.nr_img += len(img_paths)
         self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded')
         self.all_img_paths.extend(img_paths)
@@ -124,7 +125,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.Table.setVerticalHeaderLabels(els)
         self.Table.setColumnCount(len(self.con))
         self.Table.setHorizontalHeaderLabels([str(i) for i in range(len(self.con))])
-        counts = UQF.area_contours(self.con, self.plant_path_dict)
+        counts, img = UQF.area_contours(self.con, self.plant_path_dict)
+        #
+        qImg = QtGui.QImage(img.data, img.shape[1], img.shape[0], QtGui.QImage.Format_Grayscale8)
+        pixmap = QtGui.QPixmap.fromImage(qImg)
+        item = QtWidgets.QGraphicsPixmapItem()
+        item.setPixmap(pixmap)
+        scene = QtWidgets.QGraphicsScene()
+        scene.addItem(item)
+        self.GV_mask.setScene(scene)
+        self.GV_mask.fitInView(item)
+        #
         for el, connr, count in counts:
             self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
 
