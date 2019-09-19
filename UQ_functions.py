@@ -263,6 +263,14 @@ def calc_shape(filename):
 def area_contours(contours, filepaths):
     results = []
     shape = calc_shape(filepaths[0])
+    #sort contours on (x, y)
+    sorted_contours = []
+    for c in contours:
+        M = cv2.moments(c)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        sorted_contours.append(((cX, cY), c))
+    print(sorted_contours)
     for i in range(0, len(contours)):
         empty_mask = np.zeros(shape, dtype=np.uint8)
         cv2.drawContours(empty_mask, contours, i, (255,255,255), -1)
