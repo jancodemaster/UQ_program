@@ -6,6 +6,7 @@ import sys
 import cv2
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 import UQ_functions as UQF
+import txt_tobitmap
 
 qtCreatorFile = "uq_gui.ui" # Enter file here.
 
@@ -92,7 +93,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setMinimumSize(1, 1)
             layout.addWidget(label)
             path = UQF.get_el_file_from_working_files(self.plant_path_dict, el)
-            pixmap = QtGui.QPixmap(path)
+            if path.endswith(".txt"):
+                array = txt_tobitmap.open_txt_np(path)
+                qImg = QtGui.QImage(array.data, array.shape[1], array.shape[0], QtGui.QImage.Format_Grayscale8)
+                pixmap = QtGui.QPixmap.fromImage(qImg)#TODO fix dat de array niet weergeven wordt. Of met een andere schaal
+            else:
+                pixmap = QtGui.QPixmap(path)
             #label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             label.setScaledContents(True)
             label.setPixmap(pixmap)
