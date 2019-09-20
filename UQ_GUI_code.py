@@ -47,7 +47,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         with the elements for each plant. 
         Plant names are added to CB_selectplant, which runs select_plant()
         '''
-        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif *.txt *.csv)")
+        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "CSV Files (*.csv);; Text Files (*.txt);; Images (*.tif)")
         #img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '')
         # check the selected filenames are valid:
         for img_path in img_paths:
@@ -193,7 +193,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.GV_mask.fitInView(item)
         #
         if self.tifLoaded:
-            msg = ".tif images are scaled, so show only relative results. Please use .csv or .txt files for better results"
+            msg = ".tif images are scaled, so results are not comparable with other images. Please use .csv or .txt files for absolute results"
             self.LW_imgpaths.addItem(msg)
         for el, connr, count in counts:
             self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
