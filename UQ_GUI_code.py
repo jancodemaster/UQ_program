@@ -54,6 +54,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             if UQF.is_valid_filename(img_path) == False:
                 msg = '{} is not a valid filename and is therefore removed'.format(img_path)
                 self.LW_imgpaths.addItem(msg)
+                msg = "Make sure files are in format: <plantname> - <element>.<suffix>"
+                self.LW_imgpaths.addItem(msg)
                 img_paths.remove(img_path)
             else:
                 self.nr_img += 1
@@ -115,6 +117,13 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.tifLoaded = True
             if path.endswith(".txt"):
                 array = txt_tobitmap.open_txt_np(path)
+                max_array = np.max(array)
+                array = array * (255/max_array)
+                array = array.astype("uint8")
+                qImg = QtGui.QImage(array.data, array.shape[1], array.shape[0], QtGui.QImage.Format_Grayscale8)
+                pixmap = QtGui.QPixmap.fromImage(qImg)
+            if path.endswith(".csv"):
+                array = np.loadtxt(path, delimiter = ",", skiprows = 0, dtype = "uint16")
                 max_array = np.max(array)
                 array = array * (255/max_array)
                 array = array.astype("uint8")
