@@ -8,6 +8,7 @@ import UQ_functions as UQF
 import txt_tobitmap
 import csv
 from pathlib import Path
+import numpy as np
 
 qtCreatorFile = "uq_gui.ui" # Enter file here.
 
@@ -27,6 +28,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.showMaximized()
         
+        self.tifLoaded = False
         self.all_img_paths = []
         self.plant_el_dict = {}
         self.plant_path_dict = {}
@@ -55,8 +57,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 msg = '{} is not a valid filename and is therefore removed'.format(img_path)
                 self.LW_imgpaths.addItem(msg)
                 img_paths.remove(img_path)
-                
-        self.nr_img += len(img_paths)
+            else:
+                self.nr_img += 1
         self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded')
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
@@ -69,6 +71,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         
         Clears every trace of the selected images
         '''
+        self.tifLoaded = False
         self.nr_img = 0
         self.LW_imgpaths.clear()
         self.CB_selectplant.clear()
@@ -99,10 +102,17 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setMinimumSize(1, 1)
             layout.addWidget(label)
             path = UQF.get_el_file_from_working_files(self.plant_path_dict, el)
+            if path.endswith(".tif"):
+                msg = "Calculating minerals makes no sense on image files do not use apply mask"
+                self.LW_imgpaths.addItem(msg)
+                self.tifLoaded = True
             if path.endswith(".txt"):
                 array = txt_tobitmap.open_txt_np(path)
+                max_array = np.max(array)
+                array = array * (255/max_array)
+                array = array.astype("uint8")
                 qImg = QtGui.QImage(array.data, array.shape[1], array.shape[0], QtGui.QImage.Format_Grayscale8)
-                pixmap = QtGui.QPixmap.fromImage(qImg)#TODO fix dat de array niet weergeven wordt. Of met een andere schaal
+                pixmap = QtGui.QPixmap.fromImage(qImg)
             else:
                 pixmap = QtGui.QPixmap(path)
             #label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
@@ -152,11 +162,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.GV_mask.setScene(scene)
         self.GV_mask.fitInView(item)
         #
-        for el, connr, count in counts:
-            self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
-        self.LE_csvfilename.setText(self.cur_plant + ' - total counts')
-        msg = 'Calculated total counts for all {} plants found on the image'.format(len(self.con))
-        self.LW_imgpaths.addItem(msg)
+        if not self.tifLoaded:
+            for el, connr, count in counts:
+                self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
+            self.LE_csvfilename.setText(self.cur_plant + ' - total counts')
+            msg = 'Calculated total counts for all {} plants found on the image'.format(len(self.con))
+            self.LW_imgpaths.addItem(msg)
+        else:
+            msg = "Calculating counts makes no sense on loaded images files, clear images and load .txt or .csv files"
+            self.LW_imgpaths.addItem(msg)
     
     def export_csv(self):
         filename = self.LE_csvfilename.text() + '.csv'

@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
-import os
+import txt_tobitmap
 
 #functions
 def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-thresholding/
@@ -39,7 +39,15 @@ def load_image(filename):
     if filename.suffix in [".tif", ".tiff", ".png", ".jpeg", ".jpg"]:
         image = cv2.imread(filename.as_posix(), 0)
         name = filename.name
-        return image, name
+        return image, name, None
+    elif filename.suffix in [".txt"]:
+        #convert txt to tif
+        array = txt_tobitmap.open_txt_np(filename)
+        max_array = np.max(array)
+        img = array * (255/max_array)
+        img = img.astype("uint8")
+        name = filename.name
+        return img, name, array
     else:
         print("Select an image file!")
         exit(0)
@@ -70,34 +78,20 @@ def load_images_directory(dirname):
     return files
 
 def mask_from_threshold(imgname, th_value):
-    img, name = load_image(imgname)
+    img, name, _ = load_image(imgname)
     _, th1 = cv2.threshold(img, th_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
     binary_mask = create_mask(img, con)
     return binary_mask, con
 
 def mask_from_k(kfile):
-    img, name = load_image(kfile)
+    img, name, _ = load_image(kfile)
     b1 = create_hist(img)
     thresh_value = balanced_hist_thresholding(b1)
     _, th1 = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
     binary_mask = create_mask(img, con)
     return binary_mask, con
-
-def el_files_from_files(files, el = "K"):#default K
-    elements = ["K", "Ca", "Fe", "Zn", "Se"]#not recommended with Fe, Zn, Se
-    if el in elements:
-        el_files = []
-        for f in files:
-            temp = f.with_suffix('')
-            name = temp.name
-            if name.endswith("{}".format(el)):
-                el_files.append(f)
-        return el_files
-    else:
-        print("Element not supported")
-        exit(0)
 
 def names_dict_from_filenames(f_list, dic):
     """This function createa a dictionary with key:plantname, 
@@ -164,29 +158,6 @@ def calc_area_element(img):#not precise unless a txt file with actual counts is 
     Returns: An int with the sum of all values in the image.
     """
     return int(np.sum(img))
-
-def execute():
-    files = load_images_directory(argv[1])#final version gets a list of strings containing paths
-    el_files = el_files_from_files(files)
-    masks = []
-    for f in el_files:
-        mask = mask_from_k(f)
-        entry = (f, mask)
-        masks.append(entry)
-    
-    maskdict = create_mask_dict(masks)
-    for f in files:#loops over all files and applies mask
-        plantname, el = plantname_from_filename(f)
-        mask = maskdict[plantname]
-        (image, name) = load_image(f)
-        plant = cv2.bitwise_and(image, mask)
-        amount_el = calc_area_element(plant)
-        print("Area of {} in pixels: {}".format(plantname, calc_area_using_mask(mask)))
-        print("Amount of {} in relative counts: {}".format(el, amount_el))
-        
-        #cv2.namedWindow("plantwithmask_{}".format(name), cv2.WINDOW_NORMAL)
-        #cv2.imshow("plantwithmask_{}".format(name), plant)
-        #cv2.waitKey()
 
 def group_plants_files(files):
     """Function to group plants based on name.
@@ -257,10 +228,10 @@ def is_valid_filename(filename):#
         return False
 
 def calc_shape(filename):
-    img, _ = load_image(filename)
+    img, _, _ = load_image(filename)
     return np.shape(img)
 
-def get_contour_precedence(contour, cols):
+def get_contour_precedence(contour, cols):#maybe change tolerance factor based on input image.
     tolerance_factor = 50
     origin = cv2.boundingRect(contour)
     return ((origin[1] // tolerance_factor) * tolerance_factor) * cols + origin[0]
@@ -275,7 +246,10 @@ def area_contours(contours, filepaths):
         empty_mask = np.zeros(shape, dtype=np.uint8)
         cv2.drawContours(empty_mask, contours, i, (255,255,255), -1)
         for f in filepaths:
-            img, name = load_image(f)
+            img, name, array = load_image(f)
+            #check if array is not None
+            if array is not None:
+                img = array
             plantname, el = plantname_from_filename(name)
             con_on_image = img * empty_mask
             total = calc_area_element(con_on_image)
