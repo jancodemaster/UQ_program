@@ -233,18 +233,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LW_imgpaths.addItem('Exported data as csv')
         
 
-
+# Run program from command line:
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MyApp()
     window.show()
     sys.exit(app.exec_())
-
-
-
-
-#for img in img_paths:
-#    item = QtWidgets.QTreeWidgetItem(self.Table)
-#    item.setText(0, img)
-#    el = img.split(' - ')[-1]
-#    el = el.split('.')[0]
