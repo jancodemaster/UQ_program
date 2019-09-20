@@ -19,9 +19,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         '''Runs on start of application: Initialization of program
         
-        Opens the GUI application
-        Initializes variables
-        Initializes clickable buttons
+        Opens the GUI application and initialized variables and buttons
         '''
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
@@ -43,15 +41,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def select_images(self):
         '''Runs when TB_imagefolder is clicked: selects images
         
-        Opens a QFileDialog screen to select images (.tif or .txt)
-        Checks if the filenames are valid
-        Saves the loaded image paths in a list
-        Extracts a list with the names and a dict with the elements per plant
-        Adds the plant names to a selection box
-        Runs the select_plant() function
+        Opens a QFileDialog screen to select images (.tif or .txt), checks
+        if the filenames are valid and saves the valid imagepaths in a list.
+        From this list the names are extracted and a dictionary is created
+        with the elements for each plant. 
+        Plant names are added to CB_selectplant, which runs select_plant()
         '''
-        #img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif; *.txt)")
-        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '')
+        img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '', "Images (*.tif *.txt *.csv)")
+        #img_paths, ext = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select Images', '')
+        # check the selected filenames are valid:
         for img_path in img_paths:
             if UQF.is_valid_filename(img_path) == False:
                 msg = '{} is not a valid filename and is therefore removed'.format(img_path)
@@ -59,12 +57,12 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 img_paths.remove(img_path)
             else:
                 self.nr_img += 1
-        self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded')
+        self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded total')
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
         self.CB_selectplant.clear()
         self.CB_selectplant.addItems(self.plant_el_dict.keys())
-        #self.select_plant()
+        # also runs select_plant()
         
     def clear_images(self):
         '''Runs when PB_clearimgs is clicked: clears images
@@ -79,20 +77,29 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.all_img_paths = []
         self.plant_el_dict = {}
         self.LW_imgpaths.addItem('All images cleared')
+        self.ImgTabs.clear()
+        self.Table.clear()
         
     def select_plant(self):
         ''''Runs when CB_selectplant index is changed
+        
+        Loads information of the current plant and for each element
+        creates a tab which shows an image of that element
         '''
         if self.CB_selectplant.currentText() == '':
             return
+        # Clear current images:
         self.CB_selectel.clear()
         self.ImgTabs.clear()
         self.cur_plant = self.CB_selectplant.currentText()
         els = self.plant_el_dict[self.cur_plant]
         self.CB_selectel.addItems(els)
+        # Get filepaths of current plant:
         self.plant_path_dict = UQF.group_plants_files(self.all_img_paths)
         self.plant_path_dict = self.plant_path_dict[self.cur_plant]
+        # Add image for each element:
         for el in els:
+            # Create a new tab:
             tab = QtWidgets.QWidget()
             layout = QtWidgets.QVBoxLayout()
             label = QtWidgets.QLabel()
@@ -103,8 +110,8 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             layout.addWidget(label)
             path = UQF.get_el_file_from_working_files(self.plant_path_dict, el)
             if path.endswith(".tif"):
-                msg = "Calculating minerals makes no sense on image files do not use apply mask"
-                self.LW_imgpaths.addItem(msg)
+                #msg = "Calculating minerals makes no sense on image files do not use apply mask"
+                #self.LW_imgpaths.addItem(msg)
                 self.tifLoaded = True
             if path.endswith(".txt"):
                 array = txt_tobitmap.open_txt_np(path)
@@ -120,9 +127,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             label.setPixmap(pixmap)
             tab.setLayout(layout)
             self.ImgTabs.addTab(tab, el)
-        self.LW_imgpaths.addItem('Loaded information of ' + self.cur_plant)
+        self.LW_imgpaths.addItem('Loaded information and images of ' + self.cur_plant)
     
     def show_mask(self):
+        '''Runs when PB_showmask is clicked
+        
+        Loads selected threshold and creates a mask with this threshold,
+        which is then showed in GV_mask.
+        '''
+        # Load threshold:
         th_mode = self.CB_selectthreshold.currentText()
         th_manual = self.SB_selectmanualth.value()
         th_el = self.CB_selectel.currentText()
@@ -130,10 +143,10 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             th_mode = th_el
             th_manual = 'Auto'
         cur_path = UQF.get_el_file_from_working_files(self.plant_path_dict, th_el)
+        # Create mask:
         mask, con = UQF.get_mask(th_mode, th_manual, cur_path, self.all_img_paths)
+        # Load mask as an image in GV_mask:
         qImg = QtGui.QImage(mask.data, mask.shape[1], mask.shape[0], QtGui.QImage.Format_Grayscale8)
-        self.mask = mask
-        self.con = con
         pixmap = QtGui.QPixmap.fromImage(qImg)
         item = QtWidgets.QGraphicsPixmapItem()
         item.setPixmap(pixmap)
@@ -141,10 +154,18 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         scene.addItem(item)
         self.GV_mask.setScene(scene)
         self.GV_mask.fitInView(item)
+        self.mask = mask
+        self.con = con
         msg = 'Calculated mask for {} using {} with threshold {}'.format(self.cur_plant, th_el, th_manual)
         self.LW_imgpaths.addItem(msg)
         
     def apply_mask(self):
+        '''Runs when PB_applymask is clicked
+        
+        Creates a table which for each plant (contour) found in the image
+        shows the total counts for each element.
+        This does not work for .tif images.
+        '''
         # TODO: check if mask and con are not empty
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
@@ -162,15 +183,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.GV_mask.setScene(scene)
         self.GV_mask.fitInView(item)
         #
-        if not self.tifLoaded:
-            for el, connr, count in counts:
-                self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
-            self.LE_csvfilename.setText(self.cur_plant + ' - total counts')
-            msg = 'Calculated total counts for all {} plants found on the image'.format(len(self.con))
+        if self.tifLoaded:
+            msg = ".tif images are scaled, so show only relative results. Please use .csv or .txt files for better results"
             self.LW_imgpaths.addItem(msg)
-        else:
-            msg = "Calculating counts makes no sense on loaded images files, clear images and load .txt or .csv files"
-            self.LW_imgpaths.addItem(msg)
+        for el, connr, count in counts:
+            self.Table.setItem(els.index(el), connr, QtWidgets.QTableWidgetItem(str(int(count))))
+        self.LE_csvfilename.setText(self.cur_plant + ' - total counts')
+        msg = 'Calculated total counts for all {} plants found on the image'.format(len(self.con))
+        self.LW_imgpaths.addItem(msg)
+            
     
     def export_csv(self):
         filename = self.LE_csvfilename.text() + '.csv'
