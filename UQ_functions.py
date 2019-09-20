@@ -48,6 +48,13 @@ def load_image(filename):
         img = img.astype("uint8")
         name = filename.name
         return img, name, array
+    elif filename.suffix in [".csv"]:
+        array = np.loadtxt(filename, delimiter = ",", skiprows = 0, dtype = "uint16")
+        max_array = np.max(array)
+        img = array * (255/max_array)
+        img = img.astype("uint8")
+        name = filename.name
+        return img, name, array
     else:
         print("Select an image file!")
         exit(0)
@@ -206,7 +213,7 @@ def create_mask_dict(masks):
 
 def is_valid_filename(filename):#
     f = Path(filename)
-    if f.suffix == ".tif":
+    if f.suffix in [".tif", ".txt", ".csv"]:
         name = f.name
         if " - " in name:
             splits = name.split(" - ")
@@ -216,14 +223,6 @@ def is_valid_filename(filename):#
                 return False
         else:
             return False
-    elif f.suffix == ".txt":
-        name = f.name
-        if " - " in name:
-            splits = name.split(" - ")
-            if len(splits) == 2:
-                return True
-            else:
-                return False
     else:
         return False
 
