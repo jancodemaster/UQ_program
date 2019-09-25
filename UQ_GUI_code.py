@@ -115,22 +115,21 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 #msg = "Calculating minerals makes no sense on image files do not use apply mask"
                 #self.LW_imgpaths.addItem(msg)
                 self.tifLoaded = True
-            if path.endswith(".txt"):
+                pixmap = QtGui.QPixmap(path)
+            elif path.endswith(".txt"):
                 array = txt_tobitmap.open_txt_np(path)
                 max_array = np.max(array)
                 array = array * (255/max_array)
                 array = array.astype("uint8")
                 qImg = QtGui.QImage(array.data, array.shape[1], array.shape[0], QtGui.QImage.Format_Grayscale8)
                 pixmap = QtGui.QPixmap.fromImage(qImg)
-            if path.endswith(".csv"):
+            elif path.endswith(".csv"):
                 array = np.loadtxt(path, delimiter = ",", skiprows = 0, dtype = "uint16")
                 max_array = np.max(array)
                 array = array * (255/max_array)
                 array = array.astype("uint8")
                 qImg = QtGui.QImage(array.data, array.shape[1], array.shape[0], QtGui.QImage.Format_Grayscale8)
                 pixmap = QtGui.QPixmap.fromImage(qImg)
-            else:
-                pixmap = QtGui.QPixmap(path)
             #label.setPixmap(pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
             label.setScaledContents(True)
             label.setPixmap(pixmap)
