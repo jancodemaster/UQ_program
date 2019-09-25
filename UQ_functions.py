@@ -34,6 +34,25 @@ def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-th
                 i_m += 1
     return i_m
 
+def hist_thresholding(array):
+    #vals, counts = np.unique(array, return_counts=True)
+    hist, bins = np.histogram(array, bins=25)
+    lastval = 0
+    down = False
+    th = None
+    i = 0
+    while th == None:
+        curval = hist[i]
+        if curval != 0:  
+            if down == True:
+                if curval > lastval:
+                    th = bins[i]
+            if curval < lastval:
+                down = True
+            lastval = curval
+        i += 1
+    return th
+
 def load_image(filename):
     filename = Path(filename)
     if filename.suffix in [".tif", ".tiff", ".png", ".jpeg", ".jpg"]:
@@ -93,8 +112,9 @@ def mask_from_threshold(imgname, th_value):
 
 def mask_from_k(kfile):
     img, name, _ = load_image(kfile)
-    b1 = create_hist(img)
-    thresh_value = balanced_hist_thresholding(b1)
+    #b1 = create_hist(img)
+    #thresh_value = balanced_hist_thresholding(b1)
+    thresh_value = hist_thresholding(img)
     _, th1 = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
     binary_mask = create_mask(img, con)

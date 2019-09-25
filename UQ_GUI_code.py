@@ -31,6 +31,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_el_dict = {}
         self.plant_path_dict = {}
         self.nr_img = 0
+        self.ext = None
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
@@ -58,7 +59,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.LW_imgpaths.addItem(msg)
                 img_paths.remove(img_path)
             else:
-                self.nr_img += 1
+                cur_ext = Path(img_path).suffix
+                if self.ext == None:
+                    self.ext = cur_ext
+                    print(self.ext)
+                if cur_ext != self.ext:
+                    msg = 'Please only add {} files. To use another extension first clear images'.format(self.ext)
+                    self.LW_imgpaths.addItem(msg)
+                    img_paths.remove(img_path)
+                else:
+                    self.nr_img += 1
         self.LW_imgpaths.addItem(str(self.nr_img) + ' images loaded total')
         self.all_img_paths.extend(img_paths)
         names, self.plant_el_dict = UQF.names_dict_from_filenames(img_paths, self.plant_el_dict)
@@ -73,6 +83,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         '''
         self.tifLoaded = False
         self.nr_img = 0
+        self.ext = None
         self.LW_imgpaths.clear()
         self.CB_selectplant.clear()
         self.CB_selectel.clear()
