@@ -34,6 +34,11 @@ def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-th
                 i_m += 1
     return i_m
 
+def all_files_same_suffix(filepaths):
+    for f in filepaths:
+        fp = Path(f)
+        
+
 def load_image(filename):
     filename = Path(filename)
     if filename.suffix in [".tif", ".tiff", ".png", ".jpeg", ".jpg"]:
@@ -77,6 +82,7 @@ def create_mask(img, contours):
 
 def create_hist(img):
     b1 = plt.hist(img.ravel(),256,[0,256])
+    print(b1)
     return b1
 
 def load_images_directory(dirname):
@@ -269,7 +275,9 @@ def area_contours(contours, filepaths):
 
 #main
 if __name__ == "__main__":
+    filename = argv[1]
+    img, _, _ = load_image(filename)
+    hist = create_hist(img)
     #files = load_images_directory(argv[1])
-    print(is_valid_filename(argv[1]))
     #group_plants_files(files)
     
