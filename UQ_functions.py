@@ -34,12 +34,6 @@ def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-th
                 i_m += 1
     return i_m
 
-<<<<<<< HEAD
-def all_files_same_suffix(filepaths):
-    for f in filepaths:
-        fp = Path(f)
-        
-=======
 def hist_thresholding(array):
     #vals, counts = np.unique(array, return_counts=True)
     hist, bins = np.histogram(array, bins=25)
@@ -58,7 +52,6 @@ def hist_thresholding(array):
             lastval = curval
         i += 1
     return th
->>>>>>> 8e9751def5340a5c3a806870cc6407045cc9e168
 
 def load_image(filename):
     filename = Path(filename)
