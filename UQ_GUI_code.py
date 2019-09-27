@@ -3,7 +3,7 @@
 # csv = ppm
 # txt = counts
 import sys
-from PyQt5 import uic, QtWidgets, QtGui, QtCore
+from PyQt5 import uic, QtWidgets, QtGui
 import UQ_functions as UQF
 import txt_tobitmap
 import csv
@@ -33,7 +33,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_path_dict = {}
         self.nr_img = 0
         self.ext = None
-        self.con = None
+        self.showmask = False
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
@@ -97,7 +97,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LW_imgpaths.addItem('All images cleared')
         self.ImgTabs.clear()
         self.Table.clear()
-        self.con = None
+        self.showmask = False
         
     def select_plant(self):
         ''''Runs when CB_selectplant index is changed
@@ -184,6 +184,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.GV_mask.fitInView(item)
         self.mask = mask
         self.con = con
+        self.showmask = True
         msg = 'Calculated mask for {} using {} with threshold {}'.format(self.cur_plant, th_el, th_manual)
         self.LW_imgpaths.addItem(msg)
         
@@ -194,7 +195,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         shows the total counts for each element.
         This does not work for .tif images.
         '''
-        if self.con == None:
+        if self.showmask == False:
             self.LW_imgpaths.addItem('Please select a mask first')
             return
         els = self.plant_el_dict[self.cur_plant]
@@ -259,13 +260,29 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             self.LW_imgpaths.addItem('Exported data as a csv file')
     
     def show_doc(self):
-        pass
+        doc_window = QtWidgets.QDialog(self)
+        doc_window.setWindowTitle("Micro-XRF Analyzer - Documentation")
+        layout = QtWidgets.QVBoxLayout()
+        doc = QtWidgets.QTextEdit()
+        doc.setReadOnly(True)
+        doc.textCursor().insertHtml('<b>Micro-XRF Analyzer - Documentation</b>')
+        layout.addWidget(doc)
+        doc_window.setLayout(layout)
+        doc_window.show()
     
     def open_github(self):
         webbrowser.open('https://github.com/jancodemaster/UQ_program')
     
     def show_about(self):
-        pass
+        about_window = QtWidgets.QDialog(self)
+        about_window.setWindowTitle("Micro-XRF Analyzer 1.0 - About")
+        layout = QtWidgets.QVBoxLayout()
+        about = QtWidgets.QTextEdit()
+        about.setReadOnly(True)
+        about.textCursor().insertHtml('<b>Micro-XRF Analyzer 1.0</b>')
+        layout.addWidget(about)
+        about_window.setLayout(layout)
+        about_window.show()
         
 
 # Run program from command line:
