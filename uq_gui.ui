@@ -28,7 +28,7 @@
            <widget class="QLabel" name="label">
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -38,6 +38,11 @@
           </item>
           <item>
            <widget class="QToolButton" name="TB_imagefolder">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>...</string>
             </property>
@@ -60,7 +65,7 @@
            <widget class="QPushButton" name="PB_clearimgs">
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -76,7 +81,7 @@
            <widget class="QLabel" name="label_2">
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -85,7 +90,13 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="CB_selectplant"/>
+           <widget class="QComboBox" name="CB_selectplant">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -102,7 +113,7 @@
            <widget class="QLabel" name="label_4">
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -111,13 +122,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="LE_csvfilename"/>
+           <widget class="QLineEdit" name="LE_csvfilename">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="PB_csvexport">
             <property name="font">
              <font>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -146,6 +163,11 @@
           <height>500</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
         <property name="currentIndex">
          <number>-1</number>
         </property>
@@ -157,6 +179,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label_3">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Select threshold:</string>
             </property>
@@ -164,6 +191,11 @@
           </item>
           <item>
            <widget class="QComboBox" name="CB_selectthreshold">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
             <item>
              <property name="text">
               <string>Auto</string>
@@ -177,13 +209,19 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="CB_selectel"/>
+           <widget class="QComboBox" name="CB_selectel">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QSpinBox" name="SB_selectmanualth">
             <property name="font">
              <font>
-              <pointsize>8</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="maximum">
@@ -195,7 +233,7 @@
            <widget class="QPushButton" name="PB_showmask">
             <property name="font">
              <font>
-              <pointsize>8</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -204,7 +242,7 @@
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_2">
+           <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -220,7 +258,7 @@
            <widget class="QPushButton" name="PB_applymask">
             <property name="font">
              <font>
-              <pointsize>8</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -268,10 +306,17 @@
     <property name="title">
      <string>Menu</string>
     </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionSave"/>
+   </widget>
+   <widget class="QMenu" name="menuInfo">
+    <property name="title">
+     <string>Info</string>
+    </property>
+    <addaction name="menu_doc"/>
+    <addaction name="menu_github"/>
+    <addaction name="menu_about"/>
    </widget>
    <addaction name="menuMenu"/>
+   <addaction name="menuInfo"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -282,6 +327,21 @@
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
+   </property>
+  </action>
+  <action name="menu_doc">
+   <property name="text">
+    <string>Documentation</string>
+   </property>
+  </action>
+  <action name="menu_about">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="menu_github">
+   <property name="text">
+    <string>Github</string>
    </property>
   </action>
  </widget>

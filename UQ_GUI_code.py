@@ -9,6 +9,7 @@ import txt_tobitmap
 import csv
 from pathlib import Path
 import numpy as np
+import webbrowser
 
 qtCreatorFile = "uq_gui.ui" # Enter file here.
 
@@ -32,12 +33,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_path_dict = {}
         self.nr_img = 0
         self.ext = None
+        self.con = None
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
         self.PB_showmask.clicked.connect(self.show_mask)
         self.PB_applymask.clicked.connect(self.apply_mask)
         self.PB_csvexport.clicked.connect(self.export_csv)
+        self.menu_doc.triggered.connect(self.show_doc)
+        self.menu_github.triggered.connect(self.open_github)
+        self.menu_about.triggered.connect(self.show_about)
     
     def select_images(self):
         '''Runs when TB_imagefolder is clicked: selects images
@@ -92,6 +97,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LW_imgpaths.addItem('All images cleared')
         self.ImgTabs.clear()
         self.Table.clear()
+        self.con = None
         
     def select_plant(self):
         ''''Runs when CB_selectplant index is changed
@@ -154,6 +160,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         Loads selected threshold and creates a mask with this threshold,
         which is then showed in GV_mask.
         '''
+        if self.all_img_paths == []:
+            self.LW_imgpaths.addItem('Please select a file first')
+            return
         # Load threshold:
         th_mode = self.CB_selectthreshold.currentText()
         th_manual = self.SB_selectmanualth.value()
@@ -185,7 +194,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         shows the total counts for each element.
         This does not work for .tif images.
         '''
-        # TODO: check if mask and con are not empty
+        if self.con == None:
+            self.LW_imgpaths.addItem('Please select a mask first')
+            return
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
         self.Table.setVerticalHeaderLabels(els)
@@ -213,6 +224,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             
     
     def export_csv(self):
+        '''Runs when PB_csvexport is clicked
+        
+        Opens a dialog window where a filename and directory can be chosen.
+        Then it writes the data in the table (including headers) to a csv file.
+        '''
         filename = self.LE_csvfilename.text() + '.csv'
         path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename, 'CSV(*.csv)')
         if path:
@@ -240,7 +256,16 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                         else:
                             rowdata.append('')
                     writer.writerow(rowdata)
-        self.LW_imgpaths.addItem('Exported data as csv')
+            self.LW_imgpaths.addItem('Exported data as a csv file')
+    
+    def show_doc(self):
+        pass
+    
+    def open_github(self):
+        webbrowser.open('https://github.com/jancodemaster/UQ_program')
+    
+    def show_about(self):
+        pass
         
 
 # Run program from command line:
