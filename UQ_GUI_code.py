@@ -9,6 +9,7 @@ import txt_tobitmap
 import csv
 from pathlib import Path
 import numpy as np
+import webbrowser
 
 qtCreatorFile = "uq_gui.ui" # Enter file here.
 
@@ -38,6 +39,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.PB_showmask.clicked.connect(self.show_mask)
         self.PB_applymask.clicked.connect(self.apply_mask)
         self.PB_csvexport.clicked.connect(self.export_csv)
+        self.menu_doc.triggered.connect(self.show_doc)
+        self.menu_github.triggered.connect(self.open_github)
+        self.menu_about.triggered.connect(self.show_about)
     
     def select_images(self):
         '''Runs when TB_imagefolder is clicked: selects images
@@ -241,6 +245,15 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                             rowdata.append('')
                     writer.writerow(rowdata)
         self.LW_imgpaths.addItem('Exported data as csv')
+    
+    def show_doc(self):
+        pass
+    
+    def open_github(self):
+        webbrowser.open('https://github.com/jancodemaster/UQ_program')
+    
+    def show_about(self):
+        pass
         
 
 # Run program from command line:
