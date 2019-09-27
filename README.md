@@ -1,6 +1,6 @@
 # UQ_program
 Gui application to analyse plant mineral data obtained from the MicroXRF. The program can load images(.tif) but for quantative results use tekst files(.txt) or comma separeted files(.csv). 
-
+![alt text](https://github.com/jancodemaster/UQ_program/blob/master/Screenshot%20from%202019-09-27%2015-05-22.png)
 # Usage
 Start the program by running:
 UQ_GUI_code.py
