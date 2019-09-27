@@ -9,7 +9,6 @@ from sys import argv
 import cv2
 import numpy as np
 from pathlib import Path
-import matplotlib.pyplot as plt
 
 #functions
 def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-thresholding/
@@ -131,7 +130,8 @@ def create_hist(img):
     Input: img, a numpy array with an image.
     Returns: b1, a pyplot histogram.
     """
-    b1 = plt.hist(img.ravel(),256,[0,256])
+    #b1 = plt.hist(img.ravel(),256,[0,256])
+    b1 = np.histogram(img.ravel(),256,[0,256])
     return b1
 
 def load_images_directory(dirname):
