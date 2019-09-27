@@ -33,6 +33,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.plant_path_dict = {}
         self.nr_img = 0
         self.ext = None
+        self.con = None
         self.TB_imagefolder.clicked.connect(self.select_images)
         self.PB_clearimgs.clicked.connect(self.clear_images)
         self.CB_selectplant.currentIndexChanged.connect(self.select_plant)
@@ -96,6 +97,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         self.LW_imgpaths.addItem('All images cleared')
         self.ImgTabs.clear()
         self.Table.clear()
+        self.con = None
         
     def select_plant(self):
         ''''Runs when CB_selectplant index is changed
@@ -158,6 +160,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         Loads selected threshold and creates a mask with this threshold,
         which is then showed in GV_mask.
         '''
+        if self.all_img_paths == []:
+            self.LW_imgpaths.addItem('Please select a file first')
+            return
         # Load threshold:
         th_mode = self.CB_selectthreshold.currentText()
         th_manual = self.SB_selectmanualth.value()
@@ -189,7 +194,9 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
         shows the total counts for each element.
         This does not work for .tif images.
         '''
-        # TODO: check if mask and con are not empty
+        if self.con == None:
+            self.LW_imgpaths.addItem('Please select a mask first')
+            return
         els = self.plant_el_dict[self.cur_plant]
         self.Table.setRowCount(len(els))
         self.Table.setVerticalHeaderLabels(els)
@@ -217,6 +224,11 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
             
     
     def export_csv(self):
+        '''Runs when PB_csvexport is clicked
+        
+        Opens a dialog window where a filename and directory can be chosen.
+        Then it writes the data in the table (including headers) to a csv file.
+        '''
         filename = self.LE_csvfilename.text() + '.csv'
         path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', filename, 'CSV(*.csv)')
         if path:
@@ -244,7 +256,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                         else:
                             rowdata.append('')
                     writer.writerow(rowdata)
-        self.LW_imgpaths.addItem('Exported data as csv')
+            self.LW_imgpaths.addItem('Exported data as a csv file')
     
     def show_doc(self):
         pass
