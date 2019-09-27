@@ -5,7 +5,6 @@
 import sys
 from PyQt5 import uic, QtWidgets, QtGui
 import UQ_functions as UQF
-import txt_tobitmap
 import csv
 from pathlib import Path
 import numpy as np
@@ -133,7 +132,7 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.tifLoaded = True
                 pixmap = QtGui.QPixmap(path)
             elif path.endswith(".txt"):
-                array = txt_tobitmap.open_txt_np(path)
+                array = np.loadtxt(path, delimiter = ",", skiprows = 1, dtype = "uint16")
                 max_array = np.max(array)
                 array = array * (255/max_array)
                 array = array.astype("uint8")

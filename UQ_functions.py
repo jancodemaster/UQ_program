@@ -10,7 +10,6 @@ import cv2
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
-#import txt_tobitmap
 
 #functions
 def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-thresholding/
@@ -80,7 +79,6 @@ def load_image(filename):
         return image, name, None
     elif filename.suffix in [".txt"]:
         #convert txt to tif
-        #array = txt_tobitmap.open_txt_np(filename)
         array = np.loadtxt(filename, delimiter = ",", skiprows = 1, dtype = "uint16")
         max_array = np.max(array)
         img = array * (255/max_array)
