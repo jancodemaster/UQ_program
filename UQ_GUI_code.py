@@ -67,7 +67,6 @@ class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 cur_ext = Path(img_path).suffix
                 if self.ext == None:
                     self.ext = cur_ext
-                    print(self.ext)
                 if cur_ext != self.ext:
                     msg = 'Please only add {} files. To use another extension first clear images'.format(self.ext)
                     self.LW_imgpaths.addItem(msg)
