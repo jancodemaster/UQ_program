@@ -1,16 +1,23 @@
 #!/usr/bin/env python3
+"""Functions needed to run UQ_GUI_code.py
 
+Author: Jan Aarts and Wieske de Swart
+Email: yannickaarts96@gmail.com;wieskedeswart@gmail.com
+"""
 #imports
 from sys import argv
 import cv2
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
-import txt_tobitmap
+#import txt_tobitmap
 
 #functions
 def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-thresholding/
-    """
+    """Balanced histogram thresholding to automatically find a threshold.
+    
+    Input: b, a plt histogram
+    Returns: i_m a integer value as threshold.
     """
     i_s = np.min(np.where(b[0]>0))
     i_e = np.max(np.where(b[0]>0))
@@ -35,6 +42,11 @@ def balanced_hist_thresholding(b):#source: https://theailearner.com/tag/image-th
     return i_m
 
 def hist_thresholding(array):
+    """Histogram thresholding which sets a threshold to filter the first peak in the histogram.
+    
+    Input: array, a numpy array of an image.
+    Returns: th, a integer value with the threshold.
+    """
     #vals, counts = np.unique(array, return_counts=True)
     hist, bins = np.histogram(array, bins=25)
     lastval = 0
@@ -54,6 +66,13 @@ def hist_thresholding(array):
     return th
 
 def load_image(filename):
+    """Loads a image file from .tif or .txt/.csv
+    
+    Input: filename, a string containing the path to the image file.
+    Returns: image, a cv image as numpy array
+    Returns: name, the name of the image
+    Returns: array, the actual array loaded from a .txt or .csv file. None if input is an image. 
+    """
     filename = Path(filename)
     if filename.suffix in [".tif", ".tiff", ".png", ".jpeg", ".jpg"]:
         image = cv2.imread(filename.as_posix(), 0)
@@ -61,7 +80,8 @@ def load_image(filename):
         return image, name, None
     elif filename.suffix in [".txt"]:
         #convert txt to tif
-        array = txt_tobitmap.open_txt_np(filename)
+        #array = txt_tobitmap.open_txt_np(filename)
+        array = np.loadtxt(filename, delimiter = ",", skiprows = 1, dtype = "uint16")
         max_array = np.max(array)
         img = array * (255/max_array)
         img = img.astype("uint8")
@@ -79,6 +99,13 @@ def load_image(filename):
         exit(0)
 
 def contouring(img):
+    """Use open-cv contouring to get contours of a binary image.
+    
+    This function calculates all contours but will return only the contours
+    larger than 1 percent of the image to avoid noise.
+    Input: img, a numpy array containing a binary image.
+    Returns: large_contours, open-cv contours larger than 1 percent of the image.
+    """
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     large_contours = []
     x , y = np.shape(img)
@@ -90,21 +117,43 @@ def contouring(img):
     return large_contours
 
 def create_mask(img, contours):
+    """This function will create a mask based on the contours and the original image.
+    
+    Input: img, a numpy array with an image.
+    Input: contours, open-cv contours.
+    Returns: binary_mask, the contours drawn on a black image. Not actually binary since black is 0 and white is 255.
+    """
     binary_mask = np.zeros(np.shape(img), dtype=np.uint8)
     cv2.drawContours(binary_mask, contours, -1, (255,255,255), -1)
     return binary_mask
 
 def create_hist(img):
+    """creates a pyplot histogram
+    
+    Input: img, a numpy array with an image.
+    Returns: b1, a pyplot histogram.
+    """
     b1 = plt.hist(img.ravel(),256,[0,256])
-    print(b1)
     return b1
 
 def load_images_directory(dirname):
+    """Loads all files in a directory.
+    
+    Input: dirname, a string containing the path to the directory.
+    Returns: files, a list of string containing the paths of all files in the directory.
+    """
     dirname = Path(dirname)
-    files = [str(x) for x in dirname.iterdir() if not x.is_dir()]#was x for x
+    files = [str(x) for x in dirname.iterdir() if not x.is_dir()]
     return files
 
 def mask_from_threshold(imgname, th_value):
+    """Creates a mask based on a threshold value.
+    
+    Input: imgname, the filename of an image.
+    Input: th_value, an integer containing the threshold value.
+    Returns: binary_mask, a numpy array with the white contours drawn on a black image.
+    Returns: con, open-cv contours based on the threshold.
+    """
     img, name, _ = load_image(imgname)
     _, th1 = cv2.threshold(img, th_value, 255, cv2.THRESH_BINARY)
     con = contouring(th1)
@@ -112,18 +161,34 @@ def mask_from_threshold(imgname, th_value):
     return binary_mask, con
 
 def mask_from_k(kfile):
+    """Creates a mask from an element image.
+    
+    For example create a mask for all plants with name x based on x-K.txt
+    K is generally a good element to create a mask from.
+    
+    Input: kfile, a string containing the path to a image file.
+    Returns: binary_mask, a numpy array with the white contours drawn on a black image.
+    Returns: con, open-cv contours based on the threshold.
+    """
     img, name, _ = load_image(kfile)
+    
     #b1 = create_hist(img)
     #thresh_value = balanced_hist_thresholding(b1)
+    
     thresh_value = hist_thresholding(img)
     _, th1 = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY)
+    
     con = contouring(th1)
     binary_mask = create_mask(img, con)
     return binary_mask, con
 
 def names_dict_from_filenames(f_list, dic):
-    """This function createa a dictionary with key:plantname, 
+    """This function creates a dictionary with key:plantname, value:element
     
+    Input: f_list, a list of files to add to the dictionary.
+    Input: dic, a dictionary with key:plantname, value:element or an empty dictionary.
+    Returns: names, a list of names of the plants.
+    Returns: dic, the updated or created dictionary.
     """
     names = []
     for f in f_list:
@@ -139,7 +204,9 @@ def update_dict(dic, key, value):
     """Updates a list in a dictionary
     
     This function updates a list in a dictionary or creates a new list with the value.
-    
+    Input: dic, the dictionary to be updated.
+    Input: key, the key for the dictionary
+    Input: value, the value given to the key.
     Returns the updated dictionary containing lists as values
     """
     if key in dic:
@@ -152,15 +219,26 @@ def update_dict(dic, key, value):
         return dic
 
 def filename_from_pathname(pathname):
+    """Extracts the file name from a whole path.
+    
+    Input: pathname, a string with a path name.
+    Returns: pathname.name, the file name as a string.
+    """
     pathname = Path(pathname)
     return pathname.name
 
-def plantname_from_filename(f):#f must be a Path(f)
-    #assumes name is always <plantname> - <el>.tif
+def plantname_from_filename(f):
+    """Extracts the plantname and element from a filename.
+    
+    The filename must be of format <plantname> - <element>.<suffix>
+    Input:f, a string with a filename.
+    Returns: plantname, a string with the plantname
+    Returns: el, a string with the element for example "K" or "Zn"
+    """
     f = Path(f)
     f = f.with_suffix('')
     name = f.name
-    splits = name.split(" - ")#pathsdfk/plantnaam - El.tif
+    splits = name.split(" - ")
     if len(splits) == 2:
         plantname = splits[0]
         el = splits[1]
@@ -169,10 +247,20 @@ def plantname_from_filename(f):#f must be a Path(f)
         el = splits[2]
     return plantname, el
 
-def calc_area_using_mask(mask):#counts the area of the total masks
+def calc_area_using_mask(mask):
+    """Calculates the area of the mask in pixels.
+    
+    Input: mask, a numpy array containing a mask.
+    Returns: the sum of all pixels in the mask.
+    """
     return int(np.sum(mask)/255) # all black pixels are 255 instead of 1
 
 def string_to_paths(files):
+    """Function to convert strings with a path to pathlib Paths.
+    
+    Input: files, a list of strings containing filenames.
+    Returns: path_files, a list of Paths.
+    """
     path_files = []
     for f in files:
         f = Path(f)
@@ -183,6 +271,7 @@ def calc_area_element(img):#not precise unless a txt file with actual counts is 
     """Function to calculate total color value of an image.
     
     This will essentially give a relative value of the total element in this picture.
+    Input: img, a numpy array with an open-cv image
     Returns: An int with the sum of all values in the image.
     """
     return int(np.sum(img))
@@ -193,6 +282,7 @@ def group_plants_files(files):
     This function creates a dictionary which has key: plantname without element
     and values a list of all plants with that name.
     Example key:smallplant, value:[smallplant K.tiff, smallplant Ca.tiff]
+    Input: files, a list of plantfiles.
     returns: plantdict - a dictionary with key:plantname, value: list of plant paths
     """
     plantdict = {}
@@ -203,6 +293,15 @@ def group_plants_files(files):
     return plantdict
 
 def get_mask(th_mode, th_manual, cur_path, files):
+    """Makes a mask from the current file based on the mode.
+    
+    Input:th_mode, either Manual or a selected element.
+    Input:th_manual, if th_mode is Manual then this contains the threshold value as integer.
+    Input:cur_path, a string with the path of the current file selected.
+    Input:files, a list of all filepaths loaded.
+    Returns: mask, the mask of the plant.
+    Returns:con, the open-cv contours of the plant.
+    """
     plantdict = group_plants_files(files)
     cur_path = Path(cur_path)
     curplantname, _ = plantname_from_filename(cur_path)
@@ -216,6 +315,12 @@ def get_mask(th_mode, th_manual, cur_path, files):
         return mask, con
         
 def get_el_file_from_working_files(working_files, th_mode):
+    """Gets the needed element from all plant files.
+    
+    Input: working_files, a list of filenames of the selected plant.
+    Input:th_mode, the required element.
+    Returns: the file which contains the required element.
+    """
     for f in working_files:
         fp = Path(f)
         temp = fp.with_suffix('')
@@ -225,7 +330,11 @@ def get_el_file_from_working_files(working_files, th_mode):
     return "Element not found"
 
 def create_mask_dict(masks):
-    #create a dict which has {key:"name" , value: mask}
+    """Creates a dictionary with the mask for every plantname.
+    
+    Input: masks, all masks made from the selected files.
+    Returns: maskdict, a dictionary with {key:"name" , value: mask}
+    """
     maskdict = {}
     for (path, mask) in masks:
         plantname, el = plantname_from_filename(path)
@@ -233,6 +342,11 @@ def create_mask_dict(masks):
     return maskdict
 
 def is_valid_filename(filename):#
+    """A check if the selected filename contains a valid image file.
+    
+    Input: filename, a string with the selected filename.
+    Returns: True if the filename is valid, False otherwise.
+    """
     f = Path(filename)
     if f.suffix in [".tif", ".txt", ".csv"]:
         name = f.name
@@ -248,15 +362,35 @@ def is_valid_filename(filename):#
         return False
 
 def calc_shape(filename):
+    """Gets the shape of the image belonging to the filepath.
+    
+    Input: filename, a string containing the path to an image file.
+    Returns: np.shape(img), the np.shape of the given image file.
+    """
     img, _, _ = load_image(filename)
     return np.shape(img)
 
 def get_contour_precedence(contour, cols):#maybe change tolerance factor based on input image.
+    """Tries to order the contours from left to right. Top to bottom.
+    
+    Tolerance factor can be different based on the image. 50 tested good in most images.
+    Input: contour, an open-cv contour
+    Input: cols, the columns of the shape of the image.
+    Returns: the precedence of the contours.
+    """
     tolerance_factor = 50
     origin = cv2.boundingRect(contour)
     return ((origin[1] // tolerance_factor) * tolerance_factor) * cols + origin[0]
 
 def area_contours(contours, filepaths):
+    """
+    Calculated the area of each contours and gives them a number to order them.
+    
+    Input: contours, open-cv contours
+    Input:filepaths, a list containing strings of image files.
+    Returns: results, a list of tuples with (element, index, sum)
+    Returns: img, the images with the drawn order on it.
+    """
     results = []
     shape = calc_shape(filepaths[0])
     #sort contours on (x, y)
