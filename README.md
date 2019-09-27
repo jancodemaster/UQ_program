@@ -1,2 +1,7 @@
 # UQ_program
-Gui application to analyse plant mineral data
+Gui application to analyse plant mineral data.
+
+# Usage
+
+# Installation
+
