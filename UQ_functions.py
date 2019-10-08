@@ -99,7 +99,7 @@ def contouring(img):
     """Use open-cv contouring to get contours of a binary image.
     
     This function calculates all contours but will return only the contours
-    larger than 1 percent of the image to avoid noise.
+    larger than 0.01 percent of the image to avoid noise.
     Input: img, a numpy array containing a binary image.
     Returns: large_contours, open-cv contours larger than 1 percent of the image.
     """
@@ -108,7 +108,7 @@ def contouring(img):
     x , y = np.shape(img)
     total_area = x * y
     for c in contours:
-        if cv2.contourArea(c) > int(total_area * 0.01): #1 percent of total image
+        if cv2.contourArea(c) > int(total_area * 0.0001): #0.01 percent of total image
             large_contours.append(c)
     large_contours = np.array(large_contours)
     return large_contours
